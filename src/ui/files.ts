@@ -50,14 +50,29 @@ export function arrangeFiles(files: readonly LoadedFile[]): LoadedFile[] {
   const useProjectNames = projectNames.every(
     (name, index) => name !== "" && projectNames.indexOf(name) === index,
   );
+  const labels = useProjectNames ? withoutSharedFirstWords(projectNames) : [];
   return [
     ...checked.map((file, index) => ({
       ...file,
       slot: slots[index] ?? slotAt(index),
-      label: useProjectNames ? (projectNames[index] ?? file.fileName) : file.fileName,
+      label: labels[index] ?? file.fileName,
     })),
     ...unchecked,
   ];
+}
+
+function withoutSharedFirstWords(names: readonly string[]): readonly string[] {
+  const words = names.map((name) => name.split(/\s+/));
+  const [first = []] = words;
+  let start = 0;
+  while (
+    words.length > 1 &&
+    first[start + 1] !== undefined &&
+    words.every((each) => each[start] === first[start] && each[start + 1] === first[start + 1])
+  ) {
+    start += 1;
+  }
+  return words.map((each) => each.slice(start).join(" "));
 }
 
 export function inDataDateOrder<File extends CheckedFile>(files: readonly File[]): readonly File[] {
