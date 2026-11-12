@@ -267,11 +267,14 @@ function ReportHeader({ files, checked }: ReportHeaderProps) {
       </div>
     );
   }
+  const first = checked[0] ?? latest;
+  const several = first !== latest;
   const { facts } = latest.result;
   return (
     <div className="report-head">
-      <h1>{latest.label}</h1>
+      <h1>{several ? `${first.label} to ${latest.label}` : latest.label}</h1>
       <p className="report-source">
+        {several && `${latest.label} has `}
         {countOf(facts.activityCount, "activity", "activities")} and{" "}
         {countOf(facts.linkCount, "relationship", "relationships")}
         {facts.p6Version !== "" && <>, exported from P6 {facts.p6Version}</>}.

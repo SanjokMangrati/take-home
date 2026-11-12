@@ -435,13 +435,24 @@ describe("scheduled finish", () => {
   test("does not show another update's finish when the latest has none", async () => {
     await renderApp();
     await pickFiles("may.xer", "july.xer");
-    await screen.findByRole("heading", { level: 1, name: "July update" });
+    await screen.findByRole("heading", { level: 1, name: "May update to July update" });
 
     expect(screen.queryByRole("region", { name: "Scheduled finish" })).toBeNull();
   });
 });
 
 describe("results", () => {
+  test("names the first and latest update when several are checked", async () => {
+    await renderApp();
+    await pickFiles("august.xer", "may.xer", "june.xer");
+    const heading = await screen.findByRole("heading", {
+      level: 1,
+      name: "May update to August update",
+    });
+
+    expect(heading.nextElementSibling?.textContent).toMatch(/^August update has \d+ activit/);
+  });
+
   test("draws one float line for each file that was checked", async () => {
     await renderApp();
     await pickFiles("broken-rows.xer", "notes.txt");
