@@ -1,0 +1,51 @@
+@layer components {
+  .series-1 {
+    --series: var(--series-1);
+  }
+
+  .series-2 {
+    --series: var(--series-2);
+  }
+
+  .series-3 {
+    --series: var(--series-3);
+  }
+
+  .series-key {
+    flex: none;
+    width: 0.875rem;
+    height: 0.25rem;
+    border-radius: 1px;
+    background: var(--series);
+  }
+
+  .verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .verdict-pass {
+    color: var(--ink-muted);
+  }
+
+  .verdict-fail {
+    color: var(--signal-ink);
+  }
+
+  .verdict-fail::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--signal);
+  }
+}
+
+@media (forced-colors: active) {
+  .series-key,
+  .verdict-fail::before {
+    background: CanvasText;
+  }
+}

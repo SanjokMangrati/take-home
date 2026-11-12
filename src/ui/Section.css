@@ -1,0 +1,21 @@
+@layer components {
+  .section {
+    margin-top: var(--section-gap);
+    scroll-margin-top: 1.5rem;
+  }
+
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-lead {
+    max-width: 46rem;
+    margin-top: 0.25rem;
+    color: var(--ink-secondary);
+  }
+}

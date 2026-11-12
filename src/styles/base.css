@@ -1,0 +1,184 @@
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-md);
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  p,
+  ul,
+  ol,
+  dl,
+  dd,
+  figure,
+  fieldset {
+    margin: 0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-condensed);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  h2 {
+    font-size: var(--text-lg);
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-size: var(--text-md);
+    line-height: 1.3;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-color: var(--rule-strong);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  a:hover {
+    text-decoration-color: currentcolor;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: -0.01em;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font: inherit;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .button-primary {
+    background: var(--ink);
+    color: var(--canvas);
+  }
+
+  .button-primary:hover {
+    background: color-mix(in srgb, var(--ink) 84%, var(--canvas));
+  }
+
+  .button-secondary {
+    border-color: var(--rule-strong);
+    background: var(--surface-raised);
+    color: var(--ink);
+    box-shadow: var(--shadow-control);
+  }
+
+  .button-secondary:hover {
+    border-color: var(--ink-muted);
+  }
+
+  .button-small {
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    font-size: var(--text-sm);
+  }
+
+  @media (pointer: coarse) {
+    .button-small {
+      min-height: 2.5rem;
+    }
+  }
+
+  .button:disabled,
+  .button:has(input:disabled) {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  .button:has(input:focus-visible) {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  .note {
+    color: var(--ink-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .marked {
+    color: var(--signal-ink);
+    font-weight: 600;
+  }
+
+  .alert {
+    max-width: 44rem;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid var(--signal);
+    background: var(--signal-wash);
+  }
+
+  .empty {
+    padding: 1.25rem 0;
+    color: var(--ink-secondary);
+  }
+}
+
+@layer utilities {
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

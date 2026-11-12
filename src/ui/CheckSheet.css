@@ -1,0 +1,246 @@
+@layer components {
+  .sheet {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .sheet th,
+  .sheet td {
+    padding: 0;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .sheet thead th {
+    padding: 0 1rem 0.875rem;
+    font-weight: 400;
+    vertical-align: bottom;
+  }
+
+  .sheet thead .sheet-corner,
+  .sheet thead .sheet-limit {
+    color: var(--ink-muted);
+    font-size: var(--text-xs);
+    font-weight: 600;
+  }
+
+  .sheet thead .sheet-corner {
+    width: 34%;
+    padding-left: 0;
+  }
+
+  .sheet thead .sheet-limit {
+    width: 8rem;
+  }
+
+  .sheet thead .sheet-file {
+    padding-top: 0.75rem;
+    border-top: 3px solid var(--series);
+  }
+
+  .sheet-file-name {
+    display: block;
+    font-family: var(--font-condensed);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .sheet-file-meta {
+    display: block;
+    color: var(--ink-muted);
+    font-size: var(--text-xs);
+    overflow-wrap: anywhere;
+  }
+
+  .sheet tbody tr {
+    border-top: 1px solid var(--rule);
+  }
+
+  .sheet tbody tr:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .sheet-check {
+    padding: 0.875rem 1.5rem 0.875rem 0;
+    font-weight: 400;
+  }
+
+  .sheet-check-name {
+    display: block;
+    font-weight: 600;
+  }
+
+  .sheet-limit-inline {
+    display: none;
+  }
+
+  .sheet tbody .sheet-limit {
+    padding: 0.875rem 1rem;
+    color: var(--ink-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .result {
+    display: grid;
+    align-content: start;
+    gap: 0.125rem;
+    width: 100%;
+    height: 100%;
+    padding: 0.875rem 1rem;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .result:hover {
+    background: var(--hover);
+  }
+
+  .result[aria-pressed="true"] {
+    background: var(--surface-raised);
+    box-shadow:
+      inset 3px 0 0 var(--ink),
+      inset 0 0 0 1px var(--rule-strong);
+  }
+
+  .result:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .result-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.125rem 0.625rem;
+  }
+
+  .result-figure {
+    font-family: var(--font-condensed);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  .result-fail {
+    color: var(--signal-ink);
+  }
+
+  .result-note {
+    color: var(--ink-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .not-checked {
+    max-width: 24rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .not-checked-cell > .result-note {
+    display: block;
+    padding: 0.875rem 1rem;
+  }
+
+  .not-checked-title {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+
+  .not-checked .result-note {
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  .not-checked .button {
+    margin-top: 0.75rem;
+  }
+
+  .hours-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin-top: 1rem;
+    font-weight: 600;
+  }
+
+  .hours-field input {
+    width: 5.5rem;
+    min-height: 2.5rem;
+    padding: 0 0.625rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  @media (max-width: 44rem) {
+    .sheet,
+    .sheet thead,
+    .sheet tbody {
+      display: block;
+    }
+
+    .sheet tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sheet.files-2 tr {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sheet.files-3 tr {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .sheet thead .sheet-corner,
+    .sheet .sheet-limit,
+    .sheet-file-source {
+      display: none;
+    }
+
+    .sheet thead .sheet-file {
+      padding: 0.625rem 0.75rem 0.75rem;
+    }
+
+    .sheet-check {
+      display: flex;
+      flex-wrap: wrap;
+      grid-column: 1 / -1;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.125rem 0.75rem;
+      padding: 0.875rem 0 0.125rem;
+    }
+
+    .sheet-limit-inline {
+      display: block;
+      color: var(--ink-muted);
+      font-size: var(--text-xs);
+    }
+
+    .result {
+      padding: 0.5rem 0.75rem 0.875rem;
+    }
+
+    .result-figure {
+      font-size: var(--text-lg);
+    }
+
+    .sheet-file-name {
+      font-size: var(--text-md);
+    }
+
+    .not-checked,
+    .not-checked-cell > .result-note {
+      padding: 0.5rem 0.75rem 0.875rem;
+    }
+  }
+}

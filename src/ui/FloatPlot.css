@@ -1,0 +1,137 @@
+@layer components {
+  .plot-frame {
+    position: relative;
+    border-radius: var(--radius-sm);
+  }
+
+  .plot {
+    display: block;
+    overflow: visible;
+    font-family: var(--font-sans);
+  }
+
+  .zone {
+    fill: var(--chart-zone);
+  }
+
+  .zone-negative {
+    fill: var(--chart-zone-signal);
+  }
+
+  .grid {
+    stroke: var(--chart-grid);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+  }
+
+  .baseline {
+    stroke: var(--chart-baseline);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+  }
+
+  .limit {
+    stroke: var(--ink-secondary);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    shape-rendering: crispEdges;
+  }
+
+  .tick {
+    fill: var(--ink-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .zone-label {
+    fill: var(--ink-secondary);
+    font-family: var(--font-condensed);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .axis-title {
+    fill: var(--ink-secondary);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .series-area {
+    fill: var(--series);
+    fill-opacity: 0.12;
+  }
+
+  .series-1 .series-area {
+    fill-opacity: 0;
+  }
+
+  .series-line {
+    fill: none;
+    stroke: var(--series);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  .hover-column {
+    fill: var(--hover);
+  }
+
+  .hit-area {
+    fill: transparent;
+  }
+
+  .tooltip {
+    position: absolute;
+    top: 2.5rem;
+    min-width: 13rem;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-popover);
+    font-size: var(--text-sm);
+    pointer-events: none;
+  }
+
+  .tooltip-title {
+    color: var(--ink-secondary);
+    font-weight: 500;
+  }
+
+  .tooltip ul {
+    display: grid;
+    gap: 0.25rem;
+    margin-top: 0.375rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tooltip li {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    column-gap: 0.5rem;
+  }
+
+  .tooltip strong {
+    font-size: var(--text-md);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tooltip-count {
+    grid-column: 3;
+    color: var(--ink-secondary);
+  }
+
+  .tooltip .series-key {
+    height: 2px;
+  }
+}
+
+@media (forced-colors: active) {
+  .series-line {
+    stroke: CanvasText;
+  }
+}

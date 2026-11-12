@@ -1,0 +1,99 @@
+@layer components {
+  .start {
+    display: grid;
+    gap: 2.5rem;
+    margin-top: 3.5rem;
+  }
+
+  .start-intro {
+    max-width: 44rem;
+  }
+
+  .start-intro h1 {
+    font-size: var(--text-display);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+  }
+
+  .lede {
+    margin-top: 1rem;
+    color: var(--ink-secondary);
+    font-size: var(--text-lg);
+    line-height: 1.45;
+  }
+
+  .start-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 1.5rem 3rem;
+    align-items: start;
+    max-width: 62rem;
+  }
+
+  .upload-area {
+    display: grid;
+    justify-items: start;
+    gap: 0.875rem;
+    padding: 1.75rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-control);
+  }
+
+  .upload-area.dragging {
+    border: 1px dashed var(--ink);
+    background: var(--surface-sunken);
+  }
+
+  .upload-title {
+    font-family: var(--font-condensed);
+    font-size: var(--text-lg);
+    font-weight: 600;
+  }
+
+  .samples {
+    display: grid;
+    justify-items: start;
+    gap: 0.75rem;
+    padding-top: 0.25rem;
+  }
+
+  .samples h2 {
+    font-size: var(--text-lg);
+  }
+
+  @media (max-width: 48rem) {
+    .start {
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .start-intro h1 {
+      font-size: var(--text-2xl);
+    }
+
+    .lede {
+      font-size: var(--text-md);
+    }
+
+    .start-actions {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .upload-area {
+      padding: 1.25rem;
+    }
+
+    .upload-area .button,
+    .samples .button {
+      justify-self: stretch;
+    }
+  }
+
+  @media (hover: none) {
+    .upload-title {
+      display: none;
+    }
+  }
+}
