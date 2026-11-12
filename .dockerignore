@@ -1,0 +1,11 @@
+.git
+.github
+.ruff_cache
+**/__pycache__
+dist
+docs
+infra
+node_modules
+scripts
+tools
+cloudflare
