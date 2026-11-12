@@ -1,0 +1,437 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  P6 schedule checker. The app container runs as an Amazon ECS Express Mode
+  service behind an HTTPS load balancer with an AWS WAF per-IP rate limit, and
+  stores uploads in an RDS for PostgreSQL database in subnets with no route to
+  the internet. Built for a short demo, so everything, including the database,
+  is deleted with the stack.
+
+Parameters:
+  ImageUri:
+    Type: String
+    Default: ""
+    Description: >-
+      The app image in this stack's ECR repository, as repository@digest. Leave
+      empty on the first deploy, which creates the repository and the database
+      but not the service.
+  TaskCpu:
+    Type: String
+    Default: "1024"
+    AllowedValues: ["512", "1024", "2048"]
+    Description: CPU units for the app task. 1024 is one vCPU.
+  TaskMemory:
+    Type: String
+    Default: "2048"
+    AllowedValues: ["1024", "2048", "3072", "4096"]
+    Description: Memory for the app task in MiB. Reading a 100 MB file needs about 1 GB.
+  DatabaseInstanceClass:
+    Type: String
+    Default: db.t4g.micro
+    AllowedValues: [db.t4g.micro, db.t4g.small]
+  AlertEmail:
+    Type: String
+    Default: ""
+    AllowedPattern: ^$|^[^@\s]+@[^@\s]+\.[^@\s]+$
+    ConstraintDescription: must be an email address, or empty.
+    Description: >-
+      Address for a monthly AWS Budgets alert when the account's costs pass
+      20 USD. Leave empty for no alert.
+
+Conditions:
+  HasImage: !Not [!Equals [!Ref ImageUri, ""]]
+  HasAlertEmail: !Not [!Equals [!Ref AlertEmail, ""]]
+
+Mappings:
+  Network:
+    Vpc:
+      Cidr: 10.20.0.0/16
+    PublicSubnetA:
+      Cidr: 10.20.0.0/24
+    PublicSubnetB:
+      Cidr: 10.20.1.0/24
+    PrivateSubnetA:
+      Cidr: 10.20.10.0/24
+    PrivateSubnetB:
+      Cidr: 10.20.11.0/24
+  Database:
+    Settings:
+      Name: checker
+      User: checker
+      Port: 5432
+
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [Network, Vpc, Cidr]
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !FindInMap [Network, PublicSubnetA, Cidr]
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-public-a
+
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !FindInMap [Network, PublicSubnetB, Cidr]
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-public-b
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-public
+
+  PublicInternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetARouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnetBRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !FindInMap [Network, PrivateSubnetA, Cidr]
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-private-a
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !FindInMap [Network, PrivateSubnetB, Cidr]
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-private-b
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-private
+
+  PrivateSubnetARouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetA
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnetBRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetB
+      RouteTableId: !Ref PrivateRouteTable
+
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private subnets for the checker database
+      SubnetIds:
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Postgres from the app subnets only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - Description: App tasks in public subnet A
+          IpProtocol: tcp
+          FromPort: !FindInMap [Database, Settings, Port]
+          ToPort: !FindInMap [Database, Settings, Port]
+          CidrIp: !FindInMap [Network, PublicSubnetA, Cidr]
+        - Description: App tasks in public subnet B
+          IpProtocol: tcp
+          FromPort: !FindInMap [Database, Settings, Port]
+          ToPort: !FindInMap [Database, Settings, Port]
+          CidrIp: !FindInMap [Network, PublicSubnetB, Cidr]
+      SecurityGroupEgress:
+        - Description: No outbound traffic
+          IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 127.0.0.1/32
+
+  DatabasePassword:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Password of the checker database's master user
+      GenerateSecretString:
+        PasswordLength: 40
+        ExcludePunctuation: true
+
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      Engine: postgres
+      EngineVersion: "18"
+      DBInstanceClass: !Ref DatabaseInstanceClass
+      AllocatedStorage: "20"
+      StorageType: gp3
+      StorageEncrypted: true
+      DBName: !FindInMap [Database, Settings, Name]
+      MasterUsername: !FindInMap [Database, Settings, User]
+      MasterUserPassword: !Sub "{{resolve:secretsmanager:${DatabasePassword}}}"
+      Port: !FindInMap [Database, Settings, Port]
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      VPCSecurityGroups:
+        - !Ref DatabaseSecurityGroup
+      PubliclyAccessible: false
+      MultiAZ: false
+      BackupRetentionPeriod: 1
+      DeletionProtection: false
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+
+  Repository:
+    Type: AWS::ECR::Repository
+    Properties:
+      EmptyOnDelete: true
+      ImageTagMutability: IMMUTABLE
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: >-
+          {"rules":[{"rulePriority":1,"description":"Keep the five newest images",
+          "selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},
+          "action":{"type":"expire"}}]}
+
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      CapacityProviders: [FARGATE]
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+      ClusterSettings:
+        - Name: containerInsights
+          Value: disabled
+
+  AppLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      RetentionInDays: 7
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: read-database-password
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref DatabasePassword
+
+  InfrastructureRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSInfrastructureRoleforExpressGatewayServices
+
+  Service:
+    Type: AWS::ECS::ExpressGatewayService
+    Condition: HasImage
+    Properties:
+      Cluster: !Ref Cluster
+      Cpu: !Ref TaskCpu
+      Memory: !Ref TaskMemory
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      InfrastructureRoleArn: !GetAtt InfrastructureRole.Arn
+      HealthCheckPath: /
+      NetworkConfiguration:
+        Subnets:
+          - !Ref PublicSubnetA
+          - !Ref PublicSubnetB
+      ScalingTarget:
+        MinTaskCount: 1
+        MaxTaskCount: 1
+      PrimaryContainer:
+        Image: !Ref ImageUri
+        ContainerPort: 3000
+        AwsLogsConfiguration:
+          LogGroup: !Ref AppLogGroup
+          LogStreamPrefix: app
+        Environment:
+          - Name: DATABASE_URL
+            Value: !Sub
+              - postgres://${User}@${Database.Endpoint.Address}:${Database.Endpoint.Port}/${Name}?sslmode=verify-full
+              - User: !FindInMap [Database, Settings, User]
+                Name: !FindInMap [Database, Settings, Name]
+        Secrets:
+          - Name: PGPASSWORD
+            ValueFrom: !Ref DatabasePassword
+
+  WebAcl:
+    Type: AWS::WAFv2::WebACL
+    Condition: HasImage
+    Properties:
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      CustomResponseBodies:
+        too-many-requests:
+          ContentType: APPLICATION_JSON
+          Content: '{"error":"Too many requests from this address. Wait five minutes and try again."}'
+      Rules:
+        - Name: changes-per-ip
+          Priority: 0
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                CustomResponseBodyKey: too-many-requests
+          Statement:
+            RateBasedStatement:
+              AggregateKeyType: IP
+              EvaluationWindowSec: 300
+              Limit: 20
+              ScopeDownStatement:
+                NotStatement:
+                  Statement:
+                    ByteMatchStatement:
+                      FieldToMatch:
+                        Method: {}
+                      PositionalConstraint: EXACTLY
+                      SearchString: GET
+                      TextTransformations:
+                        - Priority: 0
+                          Type: NONE
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: changes-per-ip
+        - Name: requests-per-ip
+          Priority: 1
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                CustomResponseBodyKey: too-many-requests
+          Statement:
+            RateBasedStatement:
+              AggregateKeyType: IP
+              EvaluationWindowSec: 300
+              Limit: 1000
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: requests-per-ip
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub ${AWS::StackName}-web-acl
+
+  WebAclAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Condition: HasImage
+    Properties:
+      ResourceArn: !GetAtt Service.ECSManagedResourceArns.IngressPath.LoadBalancerArn
+      WebACLArn: !GetAtt WebAcl.Arn
+
+  CostAlert:
+    Type: AWS::Budgets::Budget
+    Condition: HasAlertEmail
+    Properties:
+      Budget:
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit:
+          Amount: 20
+          Unit: USD
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlertEmail
+
+Outputs:
+  ServiceEndpoint:
+    Condition: HasImage
+    Description: Address of the app.
+    Value: !GetAtt Service.Endpoint
+  RepositoryUri:
+    Value: !GetAtt Repository.RepositoryUri
+  LogGroupName:
+    Value: !Ref AppLogGroup
