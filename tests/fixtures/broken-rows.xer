@@ -1,0 +1,59 @@
+ERMHDR	17.12	2026-11-12	Project	admin	Fixture	dbxDatabaseNoName	Project Management	USD
+%T	PROJECT
+%F	proj_id	proj_short_name	last_recalc_date
+%R	1	FIXTURE	2026-11-01 00:00
+%T	CALENDAR
+%F	clndr_id	clndr_name	day_hr_cnt
+%R	10	Standard 8h	8
+%R	11	Ten hour	10
+%R	12	No hours	
+%R	10	Duplicate	8
+%T	RISKTYPE
+%F	risk_type_id	risk_type
+%R	1	Fine
+%R	2	BadÅbyte
+%R	3	Split	value
+%T	TASK
+%F	task_id	proj_id	clndr_id	task_code	task_name	task_type	status_code	total_float_hr_cnt
+%R	100	1	10	A1000	Start	TT_Mile	TK_NotStart	0
+%R	101	1	10	A1010	Excavation	TT_Task	TK_NotStart	-16
+%R	102	1	10	A1020	Footings	TT_Task	TK_Active	352
+%R	103	1	10	A1030	Slab	TT_Task	TK_NotStart	360
+%R	104	1	11	A1040	Steel	TT_Task	TK_NotStart	450
+%R	105	1	11	A1050	Roof	TT_Task	TK_NotStart	440
+%R	106	1	12	A1060	FaÁade	TT_Task	TK_NotStart	0
+%R	107	1	10	A1070	Glazing	TT_Task	TK_NotStart	
+%R	108	1	10	A1080	Drywall	TT_Task	TK_NotStart	abc
+%R	109	1	99	A1090	Paint	TT_Task	TK_NotStart	8
+%R	110	1	10	A1100	Supervision	TT_LOE	TK_NotStart	1000
+%R	111	1	10	A1110	Mobilise	TT_Task	TK_Complete	
+%R	112	1	10	A1120	Survey	TT_Task	TK_Done	0
+%R	101	1	10	A1130	Copy of Excavation	TT_Task	TK_NotStart	0
+%R	114	1	10	A1140	Handover	TT_FinMile	TK_NotStart	-8
+%R	115	1	10	A1150	Landscaping	TT_Task	TK_NotStart	16
+%R	116	1	10	A1160	Signage	TT_Task	TK_NotStart	24	extra
+%R	117	1	10	A1170	Fit-outÅ	TT_Task	TK_NotStart	0
+continued note text
+%R	118	1	10	A1180	Cut off
+%T	TASKPRED
+%F	task_pred_id	task_id	pred_task_id	pred_type	lag_hr_cnt
+%R	1	101	111	PR_FS	0
+%R	2	101	100	PR_FS	0
+%R	3	102	101	PR_FS	0
+%R	4	103	102	PR_FS	0
+%R	5	104	103	PR_FS	0
+%R	6	105	104	PR_SS	0
+%R	7	106	105	PR_FS	0
+%R	8	107	106	PR_FS	0
+%R	9	108	107	PR_FS	0
+%R	10	109	108	PR_FS	0
+%R	11	117	109	PR_FF	0
+%R	12	114	117	PR_FS	0
+%R	13	114	115	PR_FS	0
+%R	14	114	112	PR_FS	0
+%R	15	114	999	PR_FS	0
+%R	16	101	101	PR_FS	0
+%R	17	102	100	PR_XX	0
+%R	18	103	102	PR_FS	0	extra
+%R	19	abc	102	PR_FS	0
+%E
