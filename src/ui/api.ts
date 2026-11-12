@@ -39,9 +39,9 @@ export interface CheckerApi {
 }
 
 export const serverApi: CheckerApi = {
-  uploadFile: (file) => {
+  uploadFile: async (file) => {
     const form = new FormData();
-    form.append("file", file);
+    form.append("file", await gzipped(file), file.name);
     return send<StoredFile>("/api/files", { method: "POST", body: form });
   },
   openFile: (id) => send<StoredFile>(`/api/files/${encodeURIComponent(id)}`),
@@ -61,6 +61,10 @@ export const serverApi: CheckerApi = {
 
 export function reasonOf(error: unknown): string {
   return error instanceof RequestError ? error.message : SERVER_ERROR;
+}
+
+function gzipped(file: File): Promise<Blob> {
+  return new Response(file.stream().pipeThrough(new CompressionStream("gzip"))).blob();
 }
 
 async function send<T>(path: string, init: RequestInit = {}): Promise<T> {

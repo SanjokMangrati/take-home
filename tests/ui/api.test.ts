@@ -1,3 +1,5 @@
+// @vitest-environment node
+import { gunzipSync } from "node:zlib";
 import { describe, expect, test, vi } from "vitest";
 import { MAX_UPLOAD_MEGABYTES } from "../../src/shared/api.ts";
 import { SERVER_ERROR } from "../../src/shared/errors.ts";
@@ -11,6 +13,21 @@ function respondWith(body: string, status: number) {
 }
 
 describe("the API client", () => {
+  test("compresses a file before uploading it and keeps its name", async () => {
+    const fetchMock = vi.fn(
+      async (_path: string, _init: RequestInit) => new Response("{}", { status: 201 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const text = "ERMHDR\t17.12\n%E\n";
+
+    await serverApi.uploadFile(new File([text], "schedule.xer"));
+
+    const form = fetchMock.mock.calls[0]?.[1].body as FormData;
+    const sent = form.get("file") as File;
+    expect(sent.name).toBe("schedule.xer");
+    expect(gunzipSync(new Uint8Array(await sent.arrayBuffer())).toString()).toBe(text);
+  });
+
   test("shows the server's message when the error body is JSON", async () => {
     respondWith(JSON.stringify({ error: "There is no uploaded file with this ID." }), 404);
 

@@ -1,4 +1,6 @@
 import { readFile } from "node:fs/promises";
+import { promisify } from "node:util";
+import { gunzip } from "node:zlib";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { type Context, Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -31,6 +33,9 @@ const XER_CONTENT_TYPE = "application/octet-stream";
 const SAMPLE_CACHE = "public, max-age=86400";
 const MULTIPART_ENVELOPE_BYTES = 64 * 1024;
 const MAX_JSON_BODY_BYTES = 1024;
+const GZIP_SIGNATURE = [0x1f, 0x8b];
+
+const gunzipAsync = promisify(gunzip);
 
 const NO_SUCH_FILE = "There is no uploaded file with this ID.";
 const ALREADY_HAS_HOURS = "This file already has the work hours in a day.";
@@ -101,7 +106,11 @@ export function createApp({
       if (fileName === "") {
         return fail(c, 400, "The uploaded file has no name.");
       }
-      const id = await addUpload({ fileName, content: new Uint8Array(await file.arrayBuffer()) });
+      const content = await unzipped(new Uint8Array(await file.arrayBuffer()), maxUploadBytes);
+      if (content === null) {
+        return tooLarge(c);
+      }
+      const id = await addUpload({ fileName, content });
       c.header("Location", `/api/files/${id}`);
       return c.json(await storedFile(id), 201);
     },
@@ -237,6 +246,17 @@ function hoursPerDayIn(body: unknown): number | null {
     isHoursPerDayInRange(hoursPerDay)
     ? hoursPerDay
     : null;
+}
+
+async function unzipped(bytes: Uint8Array, maxBytes: number): Promise<Uint8Array | null> {
+  if (!GZIP_SIGNATURE.every((byte, index) => bytes[index] === byte)) {
+    return bytes;
+  }
+  try {
+    return await gunzipAsync(bytes, { maxOutputLength: maxBytes });
+  } catch (error) {
+    return error instanceof RangeError ? null : bytes;
+  }
 }
 
 function readSample(fileName: string): Promise<Uint8Array<ArrayBuffer>> {

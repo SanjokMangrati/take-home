@@ -1,3 +1,4 @@
+import { gzipSync } from "node:zlib";
 import type { Hono } from "hono";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { compareSchedules } from "../../src/core/compare.ts";
@@ -142,6 +143,34 @@ describe("uploading a file", () => {
   test("rejects a file one byte over the size limit", async () => {
     const small = appWith({ maxUploadBytes: BYTES_PER_MEGABYTE });
     const response = await upload(new Uint8Array(BYTES_PER_MEGABYTE + 1), "large.xer", small);
+
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: "This file is larger than the 1 MB limit." });
+  });
+
+  test("unzips a file the page compressed before uploading it", async () => {
+    const bytes = repoFile("tests/fixtures/broken-rows.xer");
+    const response = await upload(gzipSync(bytes), "broken-rows.xer");
+
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({
+      fileName: "broken-rows.xer",
+      result: analyzeXer(bytes),
+    });
+  });
+
+  test("accepts a compressed file that unzips to exactly the size limit", async () => {
+    const small = appWith({ maxUploadBytes: BYTES_PER_MEGABYTE });
+    const compressed = gzipSync(new Uint8Array(BYTES_PER_MEGABYTE));
+    const response = await upload(compressed, "limit.xer", small);
+
+    expect(response.status).toBe(201);
+  });
+
+  test("rejects a compressed file that unzips to more than the size limit", async () => {
+    const small = appWith({ maxUploadBytes: BYTES_PER_MEGABYTE });
+    const compressed = gzipSync(new Uint8Array(BYTES_PER_MEGABYTE + 1));
+    const response = await upload(compressed, "large.xer", small);
 
     expect(response.status).toBe(413);
     expect(await response.json()).toEqual({ error: "This file is larger than the 1 MB limit." });
