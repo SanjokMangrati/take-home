@@ -82,7 +82,7 @@ uv run --no-project --with mpxj --with jpype1 python tools/crosscheck_mpxj.py da
 
 ## Deployment
 
-The live demo runs on Cloudflare. A Worker serves the page and forwards API requests to a Container built from the [Dockerfile](Dockerfile). Postgres runs on Neon.
+The [live demo](https://p6-checker.smangrati.com) runs on Cloudflare. A Worker serves the page and forwards API requests to a Container built from the [Dockerfile](Dockerfile). Postgres runs on Neon.
 
 ```sh
 npm --prefix cloudflare ci

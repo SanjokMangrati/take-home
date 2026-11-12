@@ -3,6 +3,7 @@
   "name": "p6-schedule-checker",
   "main": "src/index.ts",
   "compatibility_date": "2026-11-01",
+  "routes": [{ "pattern": "p6-checker.smangrati.com", "custom_domain": true }],
   "assets": {
     "directory": "../dist",
     "binding": "ASSETS",
