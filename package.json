@@ -1,0 +1,46 @@
+{
+  "name": "p6-schedule-checker",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "dev:server": "node --env-file=.env.development --watch src/server/main.ts",
+    "build": "tsc -b && vite build",
+    "start": "node src/server/main.ts",
+    "typecheck": "tsc -b",
+    "lint": "biome check",
+    "format": "biome check --write",
+    "test": "vitest run",
+    "deploy": "bash scripts/deploy.sh",
+    "deploy:cloudflare": "npm run build && npm --prefix cloudflare run deploy",
+    "teardown": "bash scripts/teardown.sh"
+  },
+  "dependencies": {
+    "@fontsource/barlow": "^5.3.0",
+    "@fontsource/barlow-semi-condensed": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@hono/node-server": "^2.1.7",
+    "hono": "^4.13.18",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.7",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^24.19.2",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "jsdom": "^31.0.0",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}

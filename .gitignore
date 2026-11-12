@@ -1,0 +1,23 @@
+node_modules/
+dist/
+__pycache__/
+.ruff_cache/
+.wrangler/
+
+# Secrets. .env.development only holds the local Docker database's dev password.
+.env
+.env.*
+!.env.development
+.dev.vars
+.dev.vars.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local tool output
+.playwright-mcp/
+coverage/
+*.log
+.DS_Store
+.claude/settings.local.json
