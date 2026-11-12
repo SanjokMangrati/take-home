@@ -20,7 +20,7 @@ describe("describeProblem", () => {
     ).toBe("Predecessor 999 is not in the file. It may belong to another project.");
     expect(
       describeProblem({ kind: "link-end-broken", column: "task_id", taskId: "112", line: 30 }),
-    ).toBe("Successor 112 is the broken row on line 30.");
+    ).toBe("Successor 112 is on line 30, which is broken.");
   });
 
   test("says when a number is too large to read", () => {

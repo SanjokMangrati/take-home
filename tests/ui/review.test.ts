@@ -23,20 +23,20 @@ describe("the review of two Dukhan updates", () => {
       {
         title: "Progress",
         sentences: [
-          "725 activities were completed and 43 were started. 1 activity was added and none were removed.",
+          "725 activities were completed, and 43 were started but not finished. 1 activity was added and none were removed.",
         ],
       },
       {
         title: "Float",
         sentences: [
-          "Of the 4,333 activities open in both files, 4,286 lost float, 31 gained float and 16 did not change.",
+          "Of the 4,333 activities open in both files, 4,286 lost float, 31 gained float and 16 kept the same float.",
           "1,294 activities went from zero or positive float to negative float.",
         ],
       },
       {
         title: "Logic",
         sentences: [
-          "Relationships changed between 63 pairs of activities that are linked in both files. The most common change, in 59 pairs, is from FS to FF.",
+          "63 pairs of activities are linked in both files, but the relationships between them changed. In 59 of them, FS became FF.",
         ],
       },
     ]);
@@ -50,7 +50,7 @@ describe("the review of two Dukhan updates", () => {
       "Float",
       "Logic",
     ]);
-    expect(text).toContain("Progress\n725 activities were completed and 43 were started.");
+    expect(text).toContain("Progress\n725 activities were completed, and 43 were started");
   });
 });
 

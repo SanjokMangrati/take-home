@@ -63,7 +63,7 @@ function matchWarning(comparison: Comparison, from: CheckedFile, to: CheckedFile
 
 function progress({ completedCount, startedCount, added, removed }: Comparison): string {
   return [
-    `${activitiesWere(completedCount)} completed and ${otherWere(startedCount)} started.`,
+    `${activitiesWere(completedCount)} completed, and ${otherWere(startedCount)} started but not finished.`,
     `${activitiesWere(added.length)} added and ${otherWere(removed.length)} removed.`,
   ].join(" ");
 }
@@ -86,7 +86,7 @@ function floatReview(comparison: Comparison): string[] {
   const notCompared = openInBothCount - floatChanges.length - unchangedFloatCount;
   const nowNegative = floatChanges.filter(isNowNegative).length;
   return [
-    `Of the ${countOf(openInBothCount, "activity", "activities")} open in both files, ${formatCount(lost)} lost float, ${formatCount(gained)} gained float and ${formatCount(unchangedFloatCount)} did not change.${notCompared > 0 ? ` ${countOf(notCompared, "has", "have")} no float value in one of the files.` : ""}`,
+    `Of the ${countOf(openInBothCount, "activity", "activities")} open in both files, ${formatCount(lost)} lost float, ${formatCount(gained)} gained float and ${formatCount(unchangedFloatCount)} kept the same float.${notCompared > 0 ? ` ${countOf(notCompared, "has", "have")} no float value in one of the files.` : ""}`,
     `${countOf(nowNegative, "activity", "activities")} went from zero or positive float to negative float.`,
   ];
 }
@@ -104,9 +104,8 @@ function relationships(comparison: Comparison): string {
   const common = mostCommonChange(stillLinked);
   return [
     stillLinked.length > 0 &&
-      `Relationships changed between ${countOf(stillLinked.length, "pair", "pairs")} of activities that are linked in both files.`,
-    common !== null &&
-      `The most common change, in ${formatCount(common.count)} pairs, is from ${common.change}.`,
+      `${countOf(stillLinked.length, "pair", "pairs")} of activities ${stillLinked.length === 1 ? "is" : "are"} linked in both files, but the relationships between them changed.`,
+    common !== null && `In ${formatCount(common.count)} of them, ${common.change}.`,
     linked > 0 && `${countOf(linked, "pair", "pairs")} of activities were newly linked.`,
     unlinked > 0 && `${countOf(unlinked, "pair", "pairs")} of activities are no longer linked.`,
   ]
@@ -119,7 +118,7 @@ function mostCommonChange(
 ): { change: string; count: number } | null {
   const counts = new Map<string, number>();
   for (const change of changes) {
-    const label = `${describeRelationships(change.before)} to ${describeRelationships(change.after)}`;
+    const label = `${describeRelationships(change.before)} became ${describeRelationships(change.after)}`;
     counts.set(label, (counts.get(label) ?? 0) + 1);
   }
   const [top] = [...counts].sort((a, b) => b[1] - a[1]);

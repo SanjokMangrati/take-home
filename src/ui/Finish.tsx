@@ -76,16 +76,23 @@ function DeadlineFact({
   readonly deadline: string;
 }) {
   const days = calendarDaysBetween(deadline, finish);
+  const mustFinish = (
+    <>
+      The project must finish by <time dateTime={deadline}>{formatDataDate(deadline)}</time>.
+    </>
+  );
   if (days === 0) {
-    return <li>On the must finish by date.</li>;
+    return <li>On time. {mustFinish}</li>;
   }
   const amount = formatDayCount(days);
   return days > 0 ? (
     <li>
-      <strong className="marked">{amount} after</strong> the must finish by date.
+      <strong className="marked">{amount} late.</strong> {mustFinish}
     </li>
   ) : (
-    <li>{amount} before the must finish by date.</li>
+    <li>
+      {amount} early. {mustFinish}
+    </li>
   );
 }
 
@@ -98,16 +105,22 @@ function SlipFact({
 }) {
   const days = calendarDaysBetween(previous.finish, latest.finish);
   if (days === 0) {
-    return <li>Same as in {previous.label}.</li>;
+    return <li>No change since {previous.label}.</li>;
   }
   const amount = formatDayCount(days);
+  const from = (
+    <>
+      since {previous.label}, from{" "}
+      <time dateTime={previous.finish}>{formatDataDate(previous.finish)}</time>.
+    </>
+  );
   return days > 0 ? (
     <li>
-      <strong className="marked">{amount} later</strong> than in {previous.label}.
+      <strong className="marked">Moved {amount} later</strong> {from}
     </li>
   ) : (
     <li>
-      {amount} earlier than in {previous.label}.
+      Moved {amount} earlier {from}
     </li>
   );
 }

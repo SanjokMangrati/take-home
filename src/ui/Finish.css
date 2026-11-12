@@ -32,6 +32,10 @@
     color: var(--ink-secondary);
   }
 
+  .finish-facts time {
+    white-space: nowrap;
+  }
+
   .strip-plot {
     position: relative;
     padding: 1.75rem 0 1.5rem;

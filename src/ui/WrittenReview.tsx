@@ -14,7 +14,7 @@ export function WrittenReview({ state, pair }: WrittenReviewProps) {
   const text = topics === null ? null : reviewText(topics);
   return (
     <Section
-      title={`What changed since ${pair.from.label}`}
+      title={`What changed from ${pair.from.label} to ${pair.to.label}`}
       actions={text !== null && <CopyButton key={text} text={text} />}
     >
       {state.kind === "loading" && (

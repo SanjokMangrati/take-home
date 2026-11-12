@@ -300,7 +300,7 @@ async function hoursNotEntered(
     if (stored !== null) {
       return {
         result: stored.result,
-        alert: `The work hours in a day were already entered for ${file.fileName}, so it shows the results checked with those hours.`,
+        alert: `The work hours in a day were already entered for ${file.fileName}. The results below use those hours.`,
       };
     }
   }

@@ -16,7 +16,7 @@ export function StartPage({ alert, onUpload, onCheckSamples }: StartPageProps) {
       <div className="start-intro">
         <h1>Check a P6 schedule update</h1>
         <p className="lede">
-          Upload this month's .xer export, and last month's to see what changed.
+          Upload a P6 .xer export to check it. Add last month's export as well to see what changed.
         </p>
       </div>
       <div className="start-actions">
@@ -27,6 +27,7 @@ export function StartPage({ alert, onUpload, onCheckSamples }: StartPageProps) {
             Check the sample files
           </button>
           <p>
+            Two monthly updates of the{" "}
             <a href={SAMPLE_SOURCE_URL}>Dukhan Housing Project Phase IX</a>, exported from P6 17.12.
           </p>
           <p className="note">

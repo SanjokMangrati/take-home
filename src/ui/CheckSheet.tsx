@@ -7,7 +7,7 @@ import { MAX_HOURS_PER_DAY } from "../core/xer/schedule.ts";
 import { MIN_ENTERED_HOURS_PER_DAY } from "../shared/api.ts";
 import { CHECK_LIMITS, DETAIL_LABELS, DETAIL_NAMES, type Selection } from "./details.ts";
 import { dataDateOf, isChecked, type LoadedFile, type UnreadableFile } from "./files.ts";
-import { formatCount, formatDataDate, formatPercentOf } from "./format.ts";
+import { countOf, formatCount, formatDataDate, formatPercentOf } from "./format.ts";
 import { Verdict } from "./marks.tsx";
 import { Section } from "./Section.tsx";
 
@@ -37,7 +37,7 @@ export function CheckSheet({
               Check
             </th>
             <th scope="col" className="sheet-limit">
-              Passes at
+              Passes if
             </th>
             {files.map((file) => (
               <th key={file.key} scope="col" className={`sheet-file series-${file.slot}`}>
@@ -52,13 +52,11 @@ export function CheckSheet({
               <th scope="row" className="sheet-check">
                 <span className="sheet-check-name">{DETAIL_LABELS[detail]}</span>
                 {detail !== "brokenRows" && (
-                  <span className="sheet-limit-inline">
-                    Passes at {CHECK_LIMITS[detail]} or less.
-                  </span>
+                  <span className="sheet-limit-inline">Passes if {CHECK_LIMITS[detail]}.</span>
                 )}
               </th>
               <td className="sheet-limit">
-                {detail === "brokenRows" ? "Listed" : `${CHECK_LIMITS[detail]} or less`}
+                {detail === "brokenRows" ? "No pass or fail" : CHECK_LIMITS[detail]}
               </td>
               {files.map((file) =>
                 file.result.kind === "checked" ? (
@@ -123,7 +121,9 @@ function FileHeading({ file }: { readonly file: LoadedFile }) {
 
 function CheckResult({ summary }: { readonly summary: CheckSummary }) {
   const leftOut = summary.leftOut > 0 && (
-    <span className="result-note marked">{formatCount(summary.leftOut)} left out</span>
+    <span className="result-note marked">
+      {countOf(summary.leftOut, "activity", "activities")} left out
+    </span>
   );
   if (summary.status === "nothing-to-check") {
     return (
@@ -142,7 +142,8 @@ function CheckResult({ summary }: { readonly summary: CheckSummary }) {
         <Verdict status={summary.status} />
       </span>{" "}
       <span className="result-note">
-        {formatCount(summary.flagged)} of {formatCount(summary.counted)}
+        {formatCount(summary.flagged)} of{" "}
+        {countOf(summary.counted, "open activity", "open activities")}
       </span>
       {leftOut}
     </>
@@ -157,10 +158,12 @@ function BrokenRowsResult({ broken }: { readonly broken: readonly BrokenRow[] })
         <span className="result-figure">{formatCount(broken.length)}</span>
       </span>{" "}
       {affecting > 0 && (
-        <span className="result-note marked">{formatCount(affecting)} change the results</span>
+        <span className="result-note marked">
+          {formatCount(affecting)} {affecting === 1 ? "changes" : "change"} the check results
+        </span>
       )}
       {affecting === 0 && broken.length > 0 && (
-        <span className="result-note">None change the results</span>
+        <span className="result-note">None change the check results</span>
       )}
       {broken.length === 0 && <span className="result-note">None found</span>}
     </>

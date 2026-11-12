@@ -61,10 +61,13 @@ const NONE_FOUND: Readonly<Record<DetailName, string>> = {
 };
 
 const CHANGE_DESCRIPTIONS: Readonly<Record<ChangeListName, string>> = {
-  lostFloat: "Activities whose total float went down, largest drop first.",
-  nowNegative: "Activities whose total float went from zero or more to below zero.",
-  addedOrRemoved: "Activities in only one of the files.",
-  relationships: "Activity pairs whose relationships changed.",
+  lostFloat:
+    "Activities open in both updates whose total float went down, largest drop first. Float is in working days.",
+  nowNegative:
+    "Activities open in both updates whose total float went from zero or more to below zero. Float is in working days.",
+  addedOrRemoved: "Activities that are in only one of the two updates.",
+  relationships:
+    "Pairs of activities that were newly linked, are no longer linked, or are linked in a different way.",
 };
 
 interface ListsProps {
@@ -137,6 +140,7 @@ export function Lists({ files, selection, onSelect, pair, comparison, ref }: Lis
             <ChangeTable
               key={selection.list}
               list={selection.list}
+              pair={pair}
               comparison={comparison}
               rows={rows}
             />
@@ -238,11 +242,12 @@ function DetailContent({ file, detail }: DetailContentProps) {
 
 interface ChangeTableProps {
   readonly list: ChangeListName;
+  readonly pair: ComparedPair;
   readonly comparison: ComparisonState;
   readonly rows: ChangeRows | null;
 }
 
-function ChangeTable({ list, comparison, rows }: ChangeTableProps) {
+function ChangeTable({ list, pair, comparison, rows }: ChangeTableProps) {
   if (comparison.kind === "failed") {
     return <p className="empty">The files could not be compared. {comparison.reason}</p>;
   }
@@ -254,7 +259,7 @@ function ChangeTable({ list, comparison, rows }: ChangeTableProps) {
       return (
         <DataTable
           caption="Activities that lost float"
-          columns={FLOAT_CHANGE_COLUMNS}
+          columns={floatChangeColumns(pair)}
           rows={rows.lostFloat}
           rowKey={(change) => change.code}
           empty="No activity open in both files lost float."
@@ -263,8 +268,8 @@ function ChangeTable({ list, comparison, rows }: ChangeTableProps) {
     case "nowNegative":
       return (
         <DataTable
-          caption="Activities whose float is now negative"
-          columns={FLOAT_CHANGE_COLUMNS}
+          caption="Activities whose float went negative"
+          columns={floatChangeColumns(pair)}
           rows={rows.nowNegative}
           rowKey={(change) => change.code}
           empty="No activity went from zero or positive float to negative float."
@@ -274,7 +279,7 @@ function ChangeTable({ list, comparison, rows }: ChangeTableProps) {
       return (
         <DataTable
           caption="Activities added or removed"
-          columns={ACTIVITY_COLUMNS}
+          columns={activityColumns(pair)}
           rows={rows.addedOrRemoved}
           rowKey={(activity) => `${activity.change}-${activity.code}`}
           empty="No activities were added or removed."
@@ -284,7 +289,7 @@ function ChangeTable({ list, comparison, rows }: ChangeTableProps) {
       return (
         <DataTable
           caption="Relationships that changed"
-          columns={RELATIONSHIP_COLUMNS}
+          columns={relationshipColumns(pair)}
           rows={rows.relationships}
           rowKey={(change) => JSON.stringify([change.predecessorCode, change.successorCode])}
           empty="No relationships changed."
@@ -344,7 +349,7 @@ const FLOAT_COLUMNS: Columns<FloatFinding> = [
 const BROKEN_ROW_COLUMNS: Columns<BrokenRow> = [
   { header: "Line", numeric: true, cell: (row) => row.line },
   {
-    header: "Row",
+    header: "Table",
     cell: (row) => (
       <>
         <span className="mono">{row.table ?? ""}</span>
@@ -366,24 +371,38 @@ const BROKEN_ROW_COLUMNS: Columns<BrokenRow> = [
   },
 ];
 
-const FLOAT_CHANGE_COLUMNS: Columns<FloatChange> = [
-  { header: "Activity ID", mono: true, cell: (change) => change.code },
-  { header: "Activity name", cell: (change) => change.name },
-  { header: "Before", numeric: true, cell: (change) => formatDays(change.beforeDays) },
-  { header: "After", numeric: true, cell: (change) => formatDays(change.afterDays) },
-  { header: "Change", numeric: true, cell: (change) => formatSignedDays(change.changeDays) },
-];
+function floatChangeColumns({ from, to }: ComparedPair): Columns<FloatChange> {
+  return [
+    { header: "Activity ID", mono: true, cell: (change) => change.code },
+    { header: "Activity name", cell: (change) => change.name },
+    {
+      header: `Float in ${from.label}`,
+      numeric: true,
+      cell: (change) => formatDays(change.beforeDays),
+    },
+    {
+      header: `Float in ${to.label}`,
+      numeric: true,
+      cell: (change) => formatDays(change.afterDays),
+    },
+    { header: "Change", numeric: true, cell: (change) => formatSignedDays(change.changeDays) },
+  ];
+}
 
-const ACTIVITY_COLUMNS: Columns<ChangedActivity> = [
-  { header: "Activity ID", mono: true, cell: (activity) => activity.code },
-  { header: "Activity name", cell: (activity) => activity.name },
-  { header: "Change", cell: (activity) => activity.change },
-  { header: "Status", cell: (activity) => describeStatus(activity.status) },
-];
+function activityColumns({ to }: ComparedPair): Columns<ChangedActivity> {
+  return [
+    { header: "Activity ID", mono: true, cell: (activity) => activity.code },
+    { header: "Activity name", cell: (activity) => activity.name },
+    { header: "Change", cell: (activity) => `${activity.change} in ${to.label}` },
+    { header: "Status", cell: (activity) => describeStatus(activity.status) },
+  ];
+}
 
-const RELATIONSHIP_COLUMNS: Columns<RelationshipChange> = [
-  { header: "Predecessor", mono: true, cell: (change) => change.predecessorCode },
-  { header: "Successor", mono: true, cell: (change) => change.successorCode },
-  { header: "Before", cell: (change) => describeRelationships(change.before) },
-  { header: "After", cell: (change) => describeRelationships(change.after) },
-];
+function relationshipColumns({ from, to }: ComparedPair): Columns<RelationshipChange> {
+  return [
+    { header: "Predecessor", mono: true, cell: (change) => change.predecessorCode },
+    { header: "Successor", mono: true, cell: (change) => change.successorCode },
+    { header: `In ${from.label}`, cell: (change) => describeRelationships(change.before) },
+    { header: `In ${to.label}`, cell: (change) => describeRelationships(change.after) },
+  ];
+}

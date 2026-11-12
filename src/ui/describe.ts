@@ -63,7 +63,7 @@ export function describeProblem(problem: Problem): string {
     case "calendar-not-in-file":
       return `Calendar ${problem.calendarId} is not in the file.`;
     case "calendar-broken":
-      return `Calendar ${problem.calendarId} is the broken row on line ${problem.line}.`;
+      return `Calendar ${problem.calendarId} is on line ${problem.line}, which is broken.`;
     case "hours-per-day-out-of-range":
       return `Hours per day is ${problem.value}. It must be more than 0 and at most ${MAX_HOURS_PER_DAY}.`;
     case "self-link":
@@ -71,7 +71,7 @@ export function describeProblem(problem: Problem): string {
     case "link-end-not-in-file":
       return `${linkEnd(problem.column)} ${problem.taskId} is not in the file. It may belong to another project.`;
     case "link-end-broken":
-      return `${linkEnd(problem.column)} ${problem.taskId} is the broken row on line ${problem.line}.`;
+      return `${linkEnd(problem.column)} ${problem.taskId} is on line ${problem.line}, which is broken.`;
   }
 }
 
@@ -80,17 +80,17 @@ export function describeEffect(effect: Effect): string {
     case "not-used":
       return "Not used by the checks.";
     case "row-ignored":
-      return "Not read.";
+      return "Skipped. Nothing in this row is used.";
     case "still-used":
       return "Still used by the checks.";
     case "activity-not-read":
-      return "Activity not read, so no check counts it.";
+      return "This activity is skipped, so no check counts it.";
     case "left-out-of-float-checks":
-      return "Left out of the negative and high float checks.";
+      return "This activity is left out of the negative and high float checks.";
     case "left-out-of-high-float-check":
-      return "Left out of the high float check.";
+      return "This activity is left out of the high float check.";
     case "link-not-counted":
-      return "Relationship not counted.";
+      return "This relationship is not counted.";
     case "calendar-unusable":
       return effect.activities === 0
         ? "No open activity with a float value uses this calendar."

@@ -40,7 +40,7 @@ export const DETAIL_LABELS: Readonly<Record<DetailName, string>> = {
 
 export const CHANGE_LIST_LABELS: Readonly<Record<ChangeListName, string>> = {
   lostFloat: "Lost float",
-  nowNegative: "Now negative",
+  nowNegative: "Went negative",
   addedOrRemoved: "Added or removed",
   relationships: "Relationships",
 };
@@ -49,14 +49,18 @@ export const DETAIL_DEFINITIONS: Readonly<Record<DetailName, string>> = {
   missingLinks: "Open activities with no predecessor or no successor.",
   negativeFloat: "Open activities with total float below zero.",
   highFloat: `Open activities with more than ${HIGH_FLOAT_THRESHOLD_DAYS} working days of total float.`,
-  brokenRows: "Rows the reader could not use.",
+  brokenRows: "Rows in the file with a problem, and whether the problem changes the check results.",
 };
 
 export const CHECK_LIMITS: Readonly<Record<CheckName, string>> = {
-  missingLinks: `${MISSING_LINKS_LIMIT_PERCENT}%`,
-  negativeFloat: `${NEGATIVE_FLOAT_LIMIT_PERCENT}%`,
-  highFloat: `${HIGH_FLOAT_LIMIT_PERCENT}%`,
+  missingLinks: limitText(MISSING_LINKS_LIMIT_PERCENT),
+  negativeFloat: limitText(NEGATIVE_FLOAT_LIMIT_PERCENT),
+  highFloat: limitText(HIGH_FLOAT_LIMIT_PERCENT),
 };
+
+function limitText(percent: number): string {
+  return percent === 0 ? "0%" : `${percent}% or less`;
+}
 
 export function isChangeList(list: ListName): list is ChangeListName {
   return (CHANGE_LIST_NAMES as readonly ListName[]).includes(list);

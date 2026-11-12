@@ -214,7 +214,7 @@ describe("uploading", () => {
     const highFloat = await screen.findByRole("row", { name: /^High float/ });
 
     expect(within(highFloat).getByText("22.2%")).toBeTruthy();
-    expect(within(highFloat).getByText("4 left out")).toBeTruthy();
+    expect(within(highFloat).getByText("4 activities left out")).toBeTruthy();
     expect(
       screen.getByText(
         "This is not a P6 XER export. The first line of an XER file starts with ERMHDR.",
@@ -315,13 +315,13 @@ describe("changes between updates", () => {
     const api = await renderApp(fakeApi({ compareFiles: vi.fn(async () => comparison) }));
     await pickFiles("broken-rows.xer", "no-float.xer");
     const review = await screen.findByRole("region", {
-      name: "What changed since broken-rows.xer",
+      name: "What changed from broken-rows.xer to no-float.xer",
     });
 
     expect(api.compareFiles).toHaveBeenCalledWith("id-broken-rows.xer", "id-no-float.xer");
     expect(
       await within(review).findByText(
-        "No activities were completed and none were started. 1 activity was added and none were removed.",
+        "No activities were completed, and none were started but not finished. 1 activity was added and none were removed.",
       ),
     ).toBeTruthy();
   });
@@ -412,13 +412,16 @@ describe("scheduled finish", () => {
     };
   }
 
-  test("shows the latest update's finish against the must finish by date and the update before", async () => {
+  test("shows how late the latest finish is and how far it moved since the update before", async () => {
     await renderApp();
     await pickFiles("june.xer", "may.xer");
 
     expect(await finishFacts()).toEqual({
       date: "15 Mar 2027",
-      facts: ["42 days after the must finish by date.", "14 days later than in May update."],
+      facts: [
+        "42 days late. The project must finish by 1 Feb 2027.",
+        "Moved 14 days later since May update, from 1 Mar 2027.",
+      ],
     });
   });
 
@@ -428,7 +431,10 @@ describe("scheduled finish", () => {
 
     expect(await finishFacts()).toEqual({
       date: "1 Apr 2027",
-      facts: ["59 days after the must finish by date.", "31 days later than in May update."],
+      facts: [
+        "59 days late. The project must finish by 1 Feb 2027.",
+        "Moved 31 days later since May update, from 1 Mar 2027.",
+      ],
     });
   });
 
@@ -488,7 +494,7 @@ describe("results", () => {
     const cell = within(negativeFloat).getByRole("button");
 
     expect(within(cell).getByText("Nothing to check")).toBeTruthy();
-    expect(within(cell).getByText("2 left out")).toBeTruthy();
+    expect(within(cell).getByText("2 activities left out")).toBeTruthy();
     fireEvent.click(cell);
     const details = screen.getByRole("region", { name: "Negative float in no-float.xer" });
     expect(
@@ -528,8 +534,8 @@ describe("results", () => {
     fireEvent.click(within(brokenRows).getByRole("button"));
     const row = screen.getByRole("row", { name: /^53 TASKPRED/ });
 
-    expect(within(row).getByText("Predecessor 112 is the broken row on line 30.")).toBeTruthy();
-    expect(within(row).getByText("Relationship not counted.")).toBeTruthy();
+    expect(within(row).getByText("Predecessor 112 is on line 30, which is broken.")).toBeTruthy();
+    expect(within(row).getByText("This relationship is not counted.")).toBeTruthy();
   });
 
   test("asks for the work hours in a day, then checks the stored file again", async () => {
@@ -580,7 +586,7 @@ describe("results", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Check with this value" }));
 
     expect((await screen.findByRole("alert")).textContent).toBe(
-      "The work hours in a day were already entered for old.xer, so it shows the results checked with those hours.",
+      "The work hours in a day were already entered for old.xer. The results below use those hours.",
     );
     expect(screen.getByRole("region", { name: "Activity lists" })).toBeTruthy();
     expect(screen.queryByLabelText("Work hours in a day")).toBeNull();

@@ -87,15 +87,15 @@ function medianLead(files: readonly CheckedFile[]): string | undefined {
   if (only === undefined) {
     return undefined;
   }
+  const share = "Share of open activities in each total float range.";
   if (medians.length === 1) {
-    return `Median total float of open activities: ${formatDays(only.median)} working days.`;
+    return `${share} Median: ${formatDays(only.median)} working days.`;
   }
   const parts = medians.map(
-    ({ label, median }, index) =>
-      `${formatDays(median)}${index === 0 ? " working days" : ""} in ${label}`,
+    ({ label, median }) => `${formatDays(median)} working days in ${label}`,
   );
   const last = parts.pop();
-  return `Median total float of open activities: ${parts.join(", ")} and ${last}.`;
+  return `${share} Median: ${parts.join(", ")} and ${last}.`;
 }
 
 interface BinRow {
