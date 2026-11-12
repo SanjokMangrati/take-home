@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: checker
+          POSTGRES_PASSWORD: checker
+          POSTGRES_DB: checker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U checker -d checker"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm --prefix cloudflare ci
+      - run: npm --prefix cloudflare run typecheck
+      - run: npm test
+      - run: npm run build
